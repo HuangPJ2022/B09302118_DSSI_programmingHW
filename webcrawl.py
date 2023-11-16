@@ -18,12 +18,10 @@ def get_num_pages(totalHotel):
     howManyPages = howManyPages.replace("\n", "")
     return(howManyPages)
 
-def scrap(location, checkIn, checkOut):
-
-    start_time = time.time()
+def scrap(location, checkIn, checkOut, start):
 
     with sync_playwright() as p:
-        
+
         #page_url = f'https://www.booking.com/searchresults.en-us.html?checkin={checkIn}&checkout={checkOut}&selected_currency=TWD&ss=London&ssne=London&ssne_untouched=London&lang=en-us&group_adults=2&no_rooms=1&group_children=0&sb_travel_purpose=leisure'
 
         page_url = f'https://www.booking.com/searchresults.en-us.html?checkin={checkIn}&checkout={checkOut}&lang=en-us&group_adults=2&no_rooms=1&group_children=0&sb_travel_purpose=leisure'
@@ -34,11 +32,12 @@ def scrap(location, checkIn, checkOut):
         
         page.wait_for_selector('input[name=\"ss\"]')
         page.click('input[name=\"ss\"]')
-        time.sleep(0.5)
-        page.locator('input[name=\"ss\"]').fill(location)
+        #page.locator('input[name=\"ss\"]').fill(location)
         
         with page.expect_navigation():
-            page.press('input[name=\"ss\"]', 'Enter')
+            page.keyboard.type(location)
+            with page.expect_request_finished():
+                page.press('input[name=\"ss\"]', 'Enter')
 
         totalHotel = page.locator("//div[@id='bodyconstraint-inner']").inner_text(timeout = 0)
         howManyPages = int(get_num_pages(totalHotel))
@@ -75,8 +74,9 @@ def scrap(location, checkIn, checkOut):
                 
 
                 hotels_list.append(hotel_dict)
+            print(f"complete {loop_count} pages with {process_time(start)}")
 
-            if loop_count > 4 and process_time(start_time) > 120:
+            if loop_count > 4 and process_time(start) > 90:
                 break
             else:
                 nextPage = page.get_by_role("button", name = "Next page")
