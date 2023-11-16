@@ -42,6 +42,8 @@ def data_cleaning(location, checkIn):
 
     df['comment'] = df['comment'].astype(str)
 
+    df = df[df['rating'] !=0]
+
     #改寫
     clean_excel_name = f"{location}_hotels_list_clean_{checkIn}.xlsx"
     df.to_excel(clean_excel_name, index=False)
